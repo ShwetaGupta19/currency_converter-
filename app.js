@@ -1,52 +1,43 @@
-const Base_url="https://cdn.jsdelivr.net/gh/fawazahmed0/currency-api@1/latest/currencies";
+const form = document.getElementById("currency-form");
+const amountInput = document.getElementById("amount");
+const fromCurrencySelect = document.getElementById("from-currency");
+const toCurrencySelect = document.getElementById("to-currency");
+const resultElement = document.getElementById("converted-amount");
 
-const dropdowns=document.querySelectorAll(".dropdown select");
-const btn=document.querySelector("button");
-const fromcur=document.querySelector(".from select");
-const tocur=document.querySelector(".To select");
-const msg=document.querySelector(".msg");
+// API base URL for currency conversion
+const API_BASE_URL = "https://api.exchangerate-api.com/v4/latest/";
 
+// Fetch exchange rates and update the conversion
+async function getExchangeRate(fromCurrency, toCurrency) {
+    const url = `${API_BASE_URL}${fromCurrency}`;
+    
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
 
-for(let select of dropdowns) {
-for (item in countrylist) {
-    let newOption=document.createElement("option");
-    newOption.innerText=item;
-    newOption.value=item;
-    if(select.name==="from" && item==="USD"){
-        newOption.selected="selected";
-    }else if(select.name==="to" && item==="INR"){
-        newOption.selected="selected";
+        // Fetch the exchange rate for the selected currencies
+        const rate = data.rates[toCurrency];
+
+        // Get the value entered by the user
+        const amount = parseFloat(amountInput.value);
+
+        // Convert the amount
+        const convertedAmount = (amount * rate).toFixed(2);
+
+        // Update the result text
+        resultElement.innerText = `${amount} ${fromCurrency} = ${convertedAmount} ${toCurrency}`;
+    } catch (error) {
+        resultElement.innerText = "Error fetching exchange rates.";
+        console.error("Error fetching exchange rates:", error);
     }
-    select.append(newOption);
 }
 
-select.addEventListener("change", (evt) => {
-    upflag(evt.target);
-});
-}
+// Handle form submission and fetch conversion
+form.addEventListener("submit", (event) => {
+    event.preventDefault();
 
-const upflag=(element)=>{
-    let currcode=element.value;
-    let countrycode=countrylist[currcode];
-    let newsrc=`https://flagsapi.com/${countrycode}/flat/64.png`;
-    let img=element.parentElement.querySelector("img");
-    img.src=newsrc;
-};
+    const fromCurrency = fromCurrencySelect.value;
+    const toCurrency = toCurrencySelect.value;
 
-btn.addEventListener("click",async(evt) => {
-    evt.preventDefault();
-    let amount=document.querySelector(".amount input");
-    let amt=amount.value;
-    if(amt===" "||amt<1){
-        amt=1;
-        amount.value="1";
-    }
-
- const  URL=`${Base_url}/${fromcur.value.toLowerCase()}/${tocur.value.toLowerCase()}.json`;
-let response = await fetch(URL);
-let data=await response.json();
-let rate =data[tocur.value.toLowerCase()];
-
-let finalamount=amt*rate;
-msg.innerText=`${amt} ${fromcur.value}=${finalamount} ${tocur.value}`;
+    getExchangeRate(fromCurrency, toCurrency);
 });
